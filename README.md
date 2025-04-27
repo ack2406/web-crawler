@@ -30,7 +30,7 @@ This project implements an asynchronous web crawler in Python using `asyncio` an
 
     ```bash
     # Analyze the generated graph, save results/plots to ./graph_results
-    uv run src/analyze_graph.py artifacts/link_graph.graphml -o ./artifacts/graph_results
+    uv run src/graph_analysis.py artifacts/link_graph.graphml -o ./artifacts/graph_results
     ```
 
 3.  **Analyze PageRank:**
