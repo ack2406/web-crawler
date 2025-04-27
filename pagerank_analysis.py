@@ -1,9 +1,10 @@
-import networkx as nx
-import matplotlib.pyplot as plt
-import numpy as np
-import time
 import argparse
 import os
+import time
+
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
 
 
 def plot_distribution(data, title, xlabel, ylabel, filename, bins=50, log_scale=False):
@@ -12,9 +13,7 @@ def plot_distribution(data, title, xlabel, ylabel, filename, bins=50, log_scale=
         return
     data = [x for x in data if isinstance(x, (int, float)) and np.isfinite(x)]
     if not data:
-        print(
-            f"Warning: No valid numeric data left for plot '{title}' after filtering. Skipping."
-        )
+        print(f"Warning: No valid numeric data left for plot '{title}' after filtering. Skipping.")
         return
 
     plt.figure(figsize=(10, 6))
@@ -49,9 +48,7 @@ def plot_distribution(data, title, xlabel, ylabel, filename, bins=50, log_scale=
 def fit_power_law(values):
     if not values:
         return None, None, None
-    positive_values = sorted(
-        [v for v in values if isinstance(v, (int, float)) and v > 0]
-    )
+    positive_values = sorted([v for v in values if isinstance(v, (int, float)) and v > 0])
     if not positive_values:
         return None, None, None
 
@@ -105,16 +102,12 @@ def calculate_pagerank(G, alpha=0.85, max_iter=100, tol=1.0e-6):
                 for predecessor in G.predecessors(node)
                 if G.out_degree(predecessor) > 0
             )
-            new_ranks[node] = ((1.0 - alpha) / N) + alpha * (
-                in_rank_sum + dangling_sum / N
-            )
+            new_ranks[node] = ((1.0 - alpha) / N) + alpha * (in_rank_sum + dangling_sum / N)
 
         current_sum = sum(new_ranks.values())
         if abs(current_sum - 1.0) > 1e-9:
             if current_sum <= 0:
-                print(
-                    f"Warning: Rank sum became zero or negative at iter {i + 1}. Resetting to uniform."
-                )
+                print(f"Warning: Rank sum became zero or negative at iter {i + 1}. Resetting to uniform.")
                 ranks = {node: 1.0 / N for node in G.nodes()}
                 continue
             factor = 1.0 / current_sum
@@ -134,11 +127,10 @@ def calculate_pagerank(G, alpha=0.85, max_iter=100, tol=1.0e-6):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Calculate and analyze PageRank for a web graph."
-    )
+    parser = argparse.ArgumentParser(description="Calculate and analyze PageRank for a web graph.")
     parser.add_argument(
-        "graphml_file", help="Path to the input GraphML file (e.g., link_graph.graphml)"
+        "graphml_file",
+        help="Path to the input GraphML file (e.g., link_graph.graphml)",
     )
     parser.add_argument(
         "-o",
@@ -155,7 +147,10 @@ if __name__ == "__main__":
         help="List of alpha (damping factor) values to test for convergence.",
     )
     parser.add_argument(
-        "--max_iter", type=int, default=100, help="Max iterations for PageRank."
+        "--max_iter",
+        type=int,
+        default=100,
+        help="Max iterations for PageRank.",
     )
     parser.add_argument(
         "--tolerance",
@@ -179,9 +174,7 @@ if __name__ == "__main__":
     try:
         G = nx.read_graphml(args.graphml_file)
         if not isinstance(G, nx.DiGraph):
-            print(
-                "Warning: Graph read from file is not directed (DiGraph). Converting..."
-            )
+            print("Warning: Graph read from file is not directed (DiGraph). Converting...")
             G = nx.DiGraph(G)
     except Exception as e:
         print(f"Error loading graph: {e}")
@@ -205,44 +198,30 @@ if __name__ == "__main__":
     pagerank_damped, iters_damped = calculate_pagerank(
         G, alpha=default_alpha, max_iter=args.max_iter, tol=args.tolerance
     )
-    print(
-        f"  Completed in {time.time() - start_time:.2f}s ({iters_damped} iterations)."
-    )
+    print(f"  Completed in {time.time() - start_time:.2f}s ({iters_damped} iterations).")
 
     print("\nCalculating PageRank without damping (alpha=1.0)...")
     start_time = time.time()
-    pagerank_undamped, iters_undamped = calculate_pagerank(
-        G, alpha=1.0, max_iter=args.max_iter, tol=args.tolerance
-    )
-    print(
-        f"  Completed in {time.time() - start_time:.2f}s ({iters_undamped} iterations)."
-    )
+    pagerank_undamped, iters_undamped = calculate_pagerank(G, alpha=1.0, max_iter=args.max_iter, tol=args.tolerance)
+    print(f"  Completed in {time.time() - start_time:.2f}s ({iters_undamped} iterations).")
     if iters_undamped >= args.max_iter:
-        print(
-            "  Note: Undamped PageRank might not converge properly on graphs that aren't strongly connected."
-        )
+        print("  Note: Undamped PageRank might not converge properly on graphs that aren't strongly connected.")
 
     if pagerank_damped:
         top_n = 10
-        sorted_pr_damped = sorted(
-            pagerank_damped.items(), key=lambda item: item[1], reverse=True
-        )
+        sorted_pr_damped = sorted(pagerank_damped.items(), key=lambda item: item[1], reverse=True)
         print(f"\nTop {top_n} pages (Damped PageRank, alpha={default_alpha}):")
         for i, (node, rank) in enumerate(sorted_pr_damped[:top_n]):
             print(f"  {i + 1}. Rank={rank:.2e} : {node}")
 
     if pagerank_undamped:
         top_n = 10
-        sorted_pr_undamped = sorted(
-            pagerank_undamped.items(), key=lambda item: item[1], reverse=True
-        )
+        sorted_pr_undamped = sorted(pagerank_undamped.items(), key=lambda item: item[1], reverse=True)
         print(f"\nTop {top_n} pages (Undamped PageRank, alpha=1.0):")
         for i, (node, rank) in enumerate(sorted_pr_undamped[:top_n]):
             print(f"  {i + 1}. Rank={rank:.2e} : {node}")
 
-    print(
-        f"\n--- 2. Analyzing Damped PageRank (alpha={default_alpha}) Distribution ---"
-    )
+    print(f"\n--- 2. Analyzing Damped PageRank (alpha={default_alpha}) Distribution ---")
     if pagerank_damped:
         pr_values = list(pagerank_damped.values())
 
@@ -265,19 +244,13 @@ if __name__ == "__main__":
 
         rank_exponent, _, r_sq = fit_power_law(pr_values)
         if rank_exponent is not None:
-            print(
-                f"Estimated Power Law Exponent for PageRank (Rank vs Value): {rank_exponent:.4f} (R^2={r_sq:.4f})"
-            )
+            print(f"Estimated Power Law Exponent for PageRank (Rank vs Value): {rank_exponent:.4f} (R^2={r_sq:.4f})")
             if r_sq < 0.8:  # type: ignore
-                print(
-                    "  Note: R^2 value suggests the power law fit (rank-value) may not be very accurate."
-                )
+                print("  Note: R^2 value suggests the power law fit (rank-value) may not be very accurate.")
         else:
             print("Could not fit power law to PageRank distribution.")
     else:
-        print(
-            "Skipping PageRank distribution analysis as damped PageRank could not be calculated."
-        )
+        print("Skipping PageRank distribution analysis as damped PageRank could not be calculated.")
 
     print("\n--- 3. Analyzing PageRank Convergence vs. Alpha ---")
     convergence_results = {}
@@ -287,12 +260,7 @@ if __name__ == "__main__":
     for alpha_val in alphas_to_test:
         print(f"  Running for alpha={alpha_val}...")
         start_time = time.time()
-        _, iters = calculate_pagerank(
-            G,
-            alpha=alpha_val,
-            max_iter=args.max_iter * 2,
-            tol=args.tolerance,
-        )
+        _, iters = calculate_pagerank(G, alpha=alpha_val, max_iter=args.max_iter * 2, tol=args.tolerance)
         convergence_results[alpha_val] = iters
         print(f"    Finished in {time.time() - start_time:.2f}s, Iterations: {iters}")
 

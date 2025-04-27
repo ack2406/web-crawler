@@ -1,11 +1,12 @@
-import networkx as nx
-import matplotlib.pyplot as plt
-import numpy as np
-import random
-import time
 import argparse
 import os
+import random
+import time
 from collections import Counter
+
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
 from scipy import stats
 
 NUM_SAMPLES_FOR_PATHS = 500
@@ -18,9 +19,7 @@ def plot_distribution(data, title, xlabel, ylabel, filename, bins=50, log_scale=
         return
     data = [x for x in data if isinstance(x, (int, float)) and np.isfinite(x)]
     if not data:
-        print(
-            f"Warning: No valid numeric data left for plot '{title}' after filtering. Skipping."
-        )
+        print(f"Warning: No valid numeric data left for plot '{title}' after filtering. Skipping.")
         return
 
     plt.figure(figsize=(10, 6))
@@ -110,9 +109,7 @@ def analyze_connectivity(G):
     size_largest_wcc = len(largest_wcc)
     print(f"Number of Weakly Connected Components (WCC): {num_wcc}")
     if num_wcc > 0:
-        print(
-            f"Size of the largest WCC: {size_largest_wcc} nodes ({size_largest_wcc / G.number_of_nodes():.2%})"
-        )
+        print(f"Size of the largest WCC: {size_largest_wcc} nodes ({size_largest_wcc / G.number_of_nodes():.2%})")
         wcc_sizes = sorted([len(c) for c in wccs], reverse=True)
         print(f"WCC sizes (top 5): {wcc_sizes[:5]}")
 
@@ -122,9 +119,7 @@ def analyze_connectivity(G):
     size_largest_scc = len(largest_scc)
     print(f"\nNumber of Strongly Connected Components (SCC): {num_scc}")
     if num_scc > 0:
-        print(
-            f"Size of the largest SCC: {size_largest_scc} nodes ({size_largest_scc / G.number_of_nodes():.2%})"
-        )
+        print(f"Size of the largest SCC: {size_largest_scc} nodes ({size_largest_scc / G.number_of_nodes():.2%})")
         scc_sizes = sorted([len(c) for c in sccs], reverse=True)
         print(f"SCC sizes (top 5): {scc_sizes[:5]}")
 
@@ -171,13 +166,9 @@ def analyze_degrees(G, output_dir):
     )
     gamma_in, _, r_sq_in = fit_power_law(in_degrees)
     if gamma_in is not None:
-        print(
-            f"Estimated Power Law Exponent (Gamma) for In-Degree: {gamma_in:.4f} (R^2={r_sq_in:.4f})"
-        )
+        print(f"Estimated Power Law Exponent (Gamma) for In-Degree: {gamma_in:.4f} (R^2={r_sq_in:.4f})")
         if r_sq_in < 0.8:  # type: ignore
-            print(
-                "  Note: R^2 value suggests the power law fit may not be very accurate."
-            )
+            print("  Note: R^2 value suggests the power law fit may not be very accurate.")
 
     out_degrees = [d for n, d in G.out_degree()]
     avg_out_degree = np.mean(out_degrees) if out_degrees else 0
@@ -199,13 +190,9 @@ def analyze_degrees(G, output_dir):
     )
     gamma_out, _, r_sq_out = fit_power_law(out_degrees)
     if gamma_out is not None:
-        print(
-            f"Estimated Power Law Exponent (Gamma) for Out-Degree: {gamma_out:.4f} (R^2={r_sq_out:.4f})"
-        )
+        print(f"Estimated Power Law Exponent (Gamma) for Out-Degree: {gamma_out:.4f} (R^2={r_sq_out:.4f})")
         if r_sq_out < 0.8:  # type: ignore
-            print(
-                "  Note: R^2 value suggests the power law fit may not be very accurate."
-            )
+            print("  Note: R^2 value suggests the power law fit may not be very accurate.")
 
 
 def analyze_distances(G, largest_wcc, output_dir):
@@ -242,31 +229,21 @@ def analyze_distances(G, largest_wcc, output_dir):
         is_strongly_conn = nx.is_strongly_connected(largest_wcc_subgraph)
         if is_strongly_conn:
             start_time = time.time()
-            avg_shortest_path_val = nx.average_shortest_path_length(
-                largest_wcc_subgraph
-            )
+            avg_shortest_path_val = nx.average_shortest_path_length(largest_wcc_subgraph)
             print(
                 f"Average Shortest Path Length (Strongly Connected WCC): {avg_shortest_path_val:.4f} (calculated in {time.time() - start_time:.2f}s)"
             )
             if num_nodes_wcc <= NUM_SAMPLES_FOR_PATHS * 2:
-                print(
-                    f"Calculating all shortest path lengths for histogram (nodes <= {NUM_SAMPLES_FOR_PATHS * 2})..."
-                )
+                print(f"Calculating all shortest path lengths for histogram (nodes <= {NUM_SAMPLES_FOR_PATHS * 2})...")
                 calc_start_time = time.time()
-                path_lengths_dict = dict(
-                    nx.all_pairs_shortest_path_length(largest_wcc_subgraph)
-                )
+                path_lengths_dict = dict(nx.all_pairs_shortest_path_length(largest_wcc_subgraph))
                 for source, targets in path_lengths_dict.items():
                     for target, length in targets.items():
                         if source != target:
                             all_shortest_paths.append(length)
-                print(
-                    f"  (Calculated {len(all_shortest_paths)} path lengths in {time.time() - calc_start_time:.2f}s)"
-                )
+                print(f"  (Calculated {len(all_shortest_paths)} path lengths in {time.time() - calc_start_time:.2f}s)")
             else:
-                print(
-                    "WCC is large, using sampling for path length histogram even though strongly connected."
-                )
+                print("WCC is large, using sampling for path length histogram even though strongly connected.")
 
         else:
             print(
@@ -279,19 +256,13 @@ def analyze_distances(G, largest_wcc, output_dir):
             start_time = time.time()
             sample_size = min(NUM_SAMPLES_FOR_PATHS, num_nodes_wcc)
             if sample_size > 0:
-                sampled_nodes = random.sample(
-                    list(largest_wcc_subgraph.nodes()), sample_size
-                )
+                sampled_nodes = random.sample(list(largest_wcc_subgraph.nodes()), sample_size)
                 print(f"Sampling shortest paths from {len(sampled_nodes)} nodes...")
                 for i, source in enumerate(sampled_nodes):
                     if i > 0 and i % 100 == 0:
-                        print(
-                            f"  Processed paths from {i}/{len(sampled_nodes)} sampled nodes..."
-                        )
+                        print(f"  Processed paths from {i}/{len(sampled_nodes)} sampled nodes...")
                     try:
-                        lengths = nx.shortest_path_length(
-                            largest_wcc_subgraph, source=source
-                        )
+                        lengths = nx.shortest_path_length(largest_wcc_subgraph, source=source)
                         for target, length in lengths.items():
                             if source != target:
                                 total_path_length += length
@@ -300,13 +271,9 @@ def analyze_distances(G, largest_wcc, output_dir):
                     except nx.NetworkXNoPath:
                         continue
                     except Exception as path_err:
-                        print(
-                            f"  Error calculating paths from node {source}: {path_err}"
-                        )
+                        print(f"  Error calculating paths from node {source}: {path_err}")
 
-                avg_shortest_path_val = (
-                    total_path_length / reachable_pairs if reachable_pairs > 0 else 0
-                )
+                avg_shortest_path_val = total_path_length / reachable_pairs if reachable_pairs > 0 else 0
                 print(
                     f"Estimated Average Shortest Path Length (Sampled, Weakly Connected): {avg_shortest_path_val:.4f}"
                 )
@@ -328,36 +295,22 @@ def analyze_distances(G, largest_wcc, output_dir):
             try:
                 mu, std = stats.norm.fit(all_shortest_paths)
                 print("\nAnalysis of Shortest Path Length Distribution (Example):")
-                print(
-                    f"  Fitted Normal Distribution Parameters: Mean={mu:.4f}, StdDev={std:.4f}"
-                )
+                print(f"  Fitted Normal Distribution Parameters: Mean={mu:.4f}, StdDev={std:.4f}")
                 k2, p = stats.normaltest(all_shortest_paths)
-                print(
-                    f"  Normality Test (D'Agostino-Pearson): Statistic={k2:.4f}, p-value={p:.4g}"
-                )
+                print(f"  Normality Test (D'Agostino-Pearson): Statistic={k2:.4f}, p-value={p:.4g}")
                 if p < 0.05:
-                    print(
-                        "  Note: Distribution significantly differs from normal based on the test."
-                    )
+                    print("  Note: Distribution significantly differs from normal based on the test.")
             except Exception as fit_err:
-                print(
-                    f"  Could not fit/analyze normal distribution for path lengths: {fit_err}"
-                )
+                print(f"  Could not fit/analyze normal distribution for path lengths: {fit_err}")
         else:
-            print(
-                "No shortest path lengths were calculated or sampled for the histogram."
-            )
+            print("No shortest path lengths were calculated or sampled for the histogram.")
 
     except nx.NetworkXError as e:
         print(f"Could not calculate average shortest path length: {e}")
     except Exception as e:
-        print(
-            f"An unexpected error occurred during average shortest path calculation: {e}"
-        )
+        print(f"An unexpected error occurred during average shortest path calculation: {e}")
 
-    print(
-        "\nCalculating Eccentricities (can be very slow, requires all-pairs shortest paths)..."
-    )
+    print("\nCalculating Eccentricities (can be very slow, requires all-pairs shortest paths)...")
     if nx.is_strongly_connected(largest_wcc_subgraph):
         try:
             start_time = time.time()
@@ -389,9 +342,7 @@ def analyze_distances(G, largest_wcc, output_dir):
                 print("Eccentricity calculation returned no valid values.")
 
         except (nx.NetworkXError, nx.NetworkXUnfeasible) as e:
-            print(
-                f"Could not calculate eccentricities (graph might have issues despite strong check): {e}"
-            )
+            print(f"Could not calculate eccentricities (graph might have issues despite strong check): {e}")
         except Exception as e:
             print(f"An unexpected error occurred during eccentricity calculation: {e}")
     else:
@@ -412,9 +363,7 @@ def analyze_clustering(G, output_dir):
     try:
         if G.number_of_edges() > 0:
             global_clustering = nx.transitivity(G)
-            print(
-                f"Global Clustering Coefficient (Transitivity): {global_clustering:.4f}"
-            )
+            print(f"Global Clustering Coefficient (Transitivity): {global_clustering:.4f}")
         else:
             print("Global Clustering Coefficient (Transitivity): N/A (no edges)")
     except Exception as e:
@@ -451,9 +400,7 @@ def analyze_clustering(G, output_dir):
             )
             print("\nAnalysis of Local Clustering Coefficient Distribution (Example):")
             try:
-                if nodes_list_for_clustering and len(nodes_list_for_clustering) == len(
-                    local_clustering_coeffs
-                ):
+                if nodes_list_for_clustering and len(nodes_list_for_clustering) == len(local_clustering_coeffs):
                     degrees = [G.degree(n) for n in nodes_list_for_clustering]
                     coeffs_array = np.array(local_clustering_coeffs)
                     degrees_array = np.array(degrees)
@@ -467,17 +414,11 @@ def analyze_clustering(G, output_dir):
                             f"  Correlation between Node Degree (>=2) and Local CC: {correlation:.4f} (p-value: {p_value:.4g})"
                         )
                     else:
-                        print(
-                            "  Not enough nodes with degree >= 2 for correlation analysis."
-                        )
+                        print("  Not enough nodes with degree >= 2 for correlation analysis.")
                 else:
-                    print(
-                        "  Cannot perform degree-clustering correlation due to potential node/coefficient mismatch."
-                    )
+                    print("  Cannot perform degree-clustering correlation due to potential node/coefficient mismatch.")
             except Exception as corr_err:
-                print(
-                    f"  Could not perform correlation analysis for clustering coefficients: {corr_err}"
-                )
+                print(f"  Could not perform correlation analysis for clustering coefficients: {corr_err}")
 
         else:
             print("No local clustering coefficients were calculated.")
@@ -498,9 +439,7 @@ def analyze_robustness(G_orig, largest_wcc_orig, output_dir):
             f"Warning: Calculated 0 nodes to remove ({NODES_TO_REMOVE_PERCENT}% of {num_nodes_orig}). Skipping robustness analysis."
         )
         return
-    print(
-        f"Simulating removal of {nodes_to_remove} nodes ({NODES_TO_REMOVE_PERCENT}%)."
-    )
+    print(f"Simulating removal of {nodes_to_remove} nodes ({NODES_TO_REMOVE_PERCENT}%).")
 
     print("\n--- 6a. Random Failures ---")
     G_failed = G_orig.copy()
@@ -508,15 +447,11 @@ def analyze_robustness(G_orig, largest_wcc_orig, output_dir):
     available_nodes = list(G_failed.nodes())
     actual_remove_count_random = min(nodes_to_remove, len(available_nodes))
     if actual_remove_count_random > 0:
-        nodes_to_remove_random = random.sample(
-            available_nodes, actual_remove_count_random
-        )
+        nodes_to_remove_random = random.sample(available_nodes, actual_remove_count_random)
         G_failed.remove_nodes_from(nodes_to_remove_random)
         print(f"Removed {len(nodes_to_remove_random)} random nodes.")
     else:
-        print(
-            "Warning: Not enough nodes to remove for random failures or 0 nodes requested. Skipping."
-        )
+        print("Warning: Not enough nodes to remove for random failures or 0 nodes requested. Skipping.")
         G_failed = None
 
     if G_failed:
@@ -524,9 +459,7 @@ def analyze_robustness(G_orig, largest_wcc_orig, output_dir):
         analyze_basic_properties(G_failed)
         wccs_f, sccs_f, largest_wcc_f, largest_scc_f = analyze_connectivity(G_failed)
         analyze_degrees(G_failed, os.path.join(output_dir, "robustness_failure"))
-        analyze_distances(
-            G_failed, largest_wcc_f, os.path.join(output_dir, "robustness_failure")
-        )
+        analyze_distances(G_failed, largest_wcc_f, os.path.join(output_dir, "robustness_failure"))
     else:
         print("Skipping analysis after random failures due to previous warning.")
 
@@ -536,33 +469,20 @@ def analyze_robustness(G_orig, largest_wcc_orig, output_dir):
     if G_attacked.number_of_nodes() > 0:
         node_degrees = list(G_attacked.degree())
         if node_degrees:
-            nodes_sorted_by_degree = sorted(
-                node_degrees, key=lambda item: item[1], reverse=True
-            )
-            actual_remove_count_attack = min(
-                nodes_to_remove, len(nodes_sorted_by_degree)
-            )
-            nodes_to_remove_attack = [
-                node
-                for node, degree in nodes_sorted_by_degree[:actual_remove_count_attack]
-            ]
+            nodes_sorted_by_degree = sorted(node_degrees, key=lambda item: item[1], reverse=True)
+            actual_remove_count_attack = min(nodes_to_remove, len(nodes_sorted_by_degree))
+            nodes_to_remove_attack = [node for node, degree in nodes_sorted_by_degree[:actual_remove_count_attack]]
             if nodes_to_remove_attack:
                 G_attacked.remove_nodes_from(nodes_to_remove_attack)
                 print(f"Removed {len(nodes_to_remove_attack)} highest-degree nodes.")
             else:
-                print(
-                    "Warning: No nodes selected for targeted attack removal (list was empty). Skipping."
-                )
+                print("Warning: No nodes selected for targeted attack removal (list was empty). Skipping.")
                 G_attacked = None
         else:
-            print(
-                "Warning: Could not retrieve degrees for targeted attack sorting. Skipping."
-            )
+            print("Warning: Could not retrieve degrees for targeted attack sorting. Skipping.")
             G_attacked = None
     else:
-        print(
-            "Warning: Original graph copy is empty for targeted attack analysis. Skipping."
-        )
+        print("Warning: Original graph copy is empty for targeted attack analysis. Skipping.")
         G_attacked = None
 
     if G_attacked:
@@ -570,9 +490,7 @@ def analyze_robustness(G_orig, largest_wcc_orig, output_dir):
         analyze_basic_properties(G_attacked)
         wccs_a, sccs_a, largest_wcc_a, largest_scc_a = analyze_connectivity(G_attacked)
         analyze_degrees(G_attacked, os.path.join(output_dir, "robustness_attack"))
-        analyze_distances(
-            G_attacked, largest_wcc_a, os.path.join(output_dir, "robustness_attack")
-        )
+        analyze_distances(G_attacked, largest_wcc_a, os.path.join(output_dir, "robustness_attack"))
     else:
         print("Skipping analysis after targeted attacks due to previous warning.")
 
@@ -586,9 +504,7 @@ def analyze_vertex_connectivity(G, largest_wcc, output_dir):
     valid_nodes = set(G.nodes())
     largest_wcc_nodes = set(largest_wcc).intersection(valid_nodes)
     if not largest_wcc_nodes:
-        print(
-            "Largest WCC node set is empty or invalid after intersection. Skipping vertex connectivity."
-        )
+        print("Largest WCC node set is empty or invalid after intersection. Skipping vertex connectivity.")
         return
 
     G_wcc_subgraph = G.subgraph(largest_wcc_nodes).copy()
@@ -598,13 +514,9 @@ def analyze_vertex_connectivity(G, largest_wcc, output_dir):
         print("Largest WCC subgraph has 0 nodes. Skipping vertex connectivity.")
         return
 
-    print(
-        "Node connectivity calculation is computationally expensive and skipped by default."
-    )
+    print("Node connectivity calculation is computationally expensive and skipped by default.")
 
-    print(
-        "Finding articulation points (cut vertices) on the largest WCC (treating as undirected)..."
-    )
+    print("Finding articulation points (cut vertices) on the largest WCC (treating as undirected)...")
     try:
         start_time = time.time()
         G_wcc_undirected = nx.Graph()
@@ -614,17 +526,11 @@ def analyze_vertex_connectivity(G, largest_wcc, output_dir):
 
         if G_wcc_undirected.number_of_nodes() > 1 and nx.is_connected(G_wcc_undirected):
             articulation_points = list(nx.articulation_points(G_wcc_undirected))
-            print(
-                f"Number of Articulation Points in Largest WCC (non-isolated part): {len(articulation_points)}"
-            )
+            print(f"Number of Articulation Points in Largest WCC (non-isolated part): {len(articulation_points)}")
             if articulation_points:
                 sample_size = min(10, len(articulation_points))
-                print(
-                    f"  Articulation Points (sample): {articulation_points[:sample_size]}"
-                )
-            print(
-                f"  (Calculated articulation points in {time.time() - start_time:.2f}s)"
-            )
+                print(f"  Articulation Points (sample): {articulation_points[:sample_size]}")
+            print(f"  (Calculated articulation points in {time.time() - start_time:.2f}s)")
 
             if len(articulation_points) == 0 and G_wcc_undirected.number_of_nodes() > 2:
                 print(
@@ -634,9 +540,7 @@ def analyze_vertex_connectivity(G, largest_wcc, output_dir):
                     "Finding separating pairs (k=2) requires more advanced algorithms (e.g., block decomposition) and is not implemented here."
                 )
             elif len(articulation_points) > 0:
-                print(
-                    "The main connected component of the largest WCC (undirected) is 1-connected."
-                )
+                print("The main connected component of the largest WCC (undirected) is 1-connected.")
         elif G_wcc_undirected.number_of_nodes() <= 1:
             print(
                 "Warning: Undirected WCC subgraph has 0 or 1 non-isolated nodes. Articulation analysis not applicable."
@@ -651,12 +555,8 @@ def analyze_vertex_connectivity(G, largest_wcc, output_dir):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Analyze a web graph stored in GraphML format."
-    )
-    parser.add_argument(
-        "graphml_file", help="Path to the input GraphML file (e.g., link_graph.graphml)"
-    )
+    parser = argparse.ArgumentParser(description="Analyze a web graph stored in GraphML format.")
+    parser.add_argument("graphml_file", help="Path to the input GraphML file (e.g., link_graph.graphml)")
     parser.add_argument(
         "-o",
         "--output_dir",
@@ -679,9 +579,7 @@ if __name__ == "__main__":
     try:
         G = nx.read_graphml(args.graphml_file)
         if not isinstance(G, nx.DiGraph):
-            print(
-                "Warning: Graph read from file is not directed (DiGraph). Converting..."
-            )
+            print("Warning: Graph read from file is not directed (DiGraph). Converting...")
             G = nx.DiGraph(G)
     except Exception as e:
         print(f"Error loading graph: {e}")
@@ -703,9 +601,7 @@ if __name__ == "__main__":
 
     analyze_clustering(G, args.output_dir)
 
-    analyze_robustness(
-        G.copy(), largest_wcc.copy() if largest_wcc else set(), args.output_dir
-    )
+    analyze_robustness(G.copy(), largest_wcc.copy() if largest_wcc else set(), args.output_dir)
 
     analyze_vertex_connectivity(G, largest_wcc, args.output_dir)
 

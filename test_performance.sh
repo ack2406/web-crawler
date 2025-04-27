@@ -3,7 +3,7 @@
 START_URL="https://www.osu.edu"
 MAX_PAGES_TEST=1000
 CONCURRENCY_LEVELS=(1 2 4 8 16 32 64 128 256 512 1024 2048)
-OUTPUT_BASE_DIR="./artifacts_perf_test"
+OUTPUT_BASE_DIR="./artifacts/perf_test"
 PERFORMANCE_LOG="${OUTPUT_BASE_DIR}/performance_results.csv"
 CRAWLER_SCRIPT="crawler.py"
 

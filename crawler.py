@@ -1,35 +1,24 @@
+import argparse
 import asyncio
 import hashlib
 import logging
 import os
 import time
-import argparse
-from urllib.parse import urlparse, urljoin, urldefrag
+from urllib.parse import urldefrag, urljoin, urlparse
 from urllib.robotparser import RobotFileParser
 
-import aiohttp
 import aiofiles
+import aiohttp
 import networkx as nx
 from bs4 import BeautifulSoup
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-DEFAULT_USER_AGENT = (
-    "Mozilla/5.0 (compatible; PythonCrawler/1.0; +http://example.com/bot.html)"
-)
+DEFAULT_USER_AGENT = "Mozilla/5.0 (compatible; WebCrawler/1.0; +https://github.com/ack2406/web-crawler)"
 
 
 class AsyncCrawler:
-    def __init__(
-        self,
-        start_url,
-        max_pages,
-        concurrency,
-        output_dir,
-        user_agent=DEFAULT_USER_AGENT,
-    ):
+    def __init__(self, start_url, max_pages, concurrency, output_dir, user_agent=DEFAULT_USER_AGENT):
         self.start_url = start_url
         self.max_pages = max_pages
         self.output_dir = output_dir
@@ -78,9 +67,7 @@ class AsyncCrawler:
                     parser.parse(content.splitlines())
                     logging.info(f"Fetched and parsed robots.txt for {domain}")
                 elif response.status == 404:
-                    logging.warning(
-                        f"robots.txt not found for {domain} (404). Allowing access."
-                    )
+                    logging.warning(f"robots.txt not found for {domain} (404). Allowing access.")
                     parser.parse([])
                 else:
                     logging.warning(
@@ -89,14 +76,10 @@ class AsyncCrawler:
                     parser.parse([])
 
         except aiohttp.ClientError as e:
-            logging.warning(
-                f"Network error fetching robots.txt for {domain}: {e}. Allowing access."
-            )
+            logging.warning(f"Network error fetching robots.txt for {domain}: {e}. Allowing access.")
             parser.parse([])
         except Exception as e:
-            logging.error(
-                f"Unexpected error processing robots.txt for {domain}: {e}. Allowing access."
-            )
+            logging.error(f"Unexpected error processing robots.txt for {domain}: {e}. Allowing access.")
             parser.parse([])
 
         self.robot_parsers[domain] = parser
@@ -115,9 +98,7 @@ class AsyncCrawler:
                 logging.debug(f"Access denied by robots.txt: {url}")
             return can
         except Exception as e:
-            logging.error(
-                f"Error checking robots.txt for {url}: {e}. Cautiously allowing."
-            )
+            logging.error(f"Error checking robots.txt for {url}: {e}. Cautiously allowing.")
             return True
 
     def _normalize_url(self, base_url, link):
@@ -139,9 +120,7 @@ class AsyncCrawler:
                 return False
 
             domain = parsed_url.netloc
-            if not domain or not (
-                domain == self.base_domain or domain.endswith(f".{self.base_domain}")
-            ):
+            if not domain or not (domain == self.base_domain or domain.endswith(f".{self.base_domain}")):
                 logging.debug(f"Rejected URL outside allowed domains: {url}")
                 return False
 
@@ -150,9 +129,7 @@ class AsyncCrawler:
                 extension = os.path.splitext(path)[1].lower()
                 allowed_extensions = {"", ".htm", ".html", ".php", ".asp", ".aspx"}
                 if extension not in allowed_extensions:
-                    logging.debug(
-                        f"Rejected URL with unsupported file extension: {url}"
-                    )
+                    logging.debug(f"Rejected URL with unsupported file extension: {url}")
                     return False
 
             return True
@@ -167,9 +144,7 @@ class AsyncCrawler:
         filename = self._hash_url(url) + ".html"
         filepath = os.path.join(self.html_dir, filename)
         try:
-            async with aiofiles.open(
-                filepath, "w", encoding="utf-8", errors="ignore"
-            ) as f:
+            async with aiofiles.open(filepath, "w", encoding="utf-8", errors="ignore") as f:
                 await f.write(content)
             logging.debug(f"Saved HTML: {url} as {filename}")
         except OSError as e:
@@ -187,10 +162,7 @@ class AsyncCrawler:
             if self._is_valid_url(normalized_url):
                 self.graph.add_edge(url, normalized_url)
 
-                if (
-                    normalized_url not in self.visited_urls
-                    and normalized_url not in self.in_progress_urls
-                ):
+                if normalized_url not in self.visited_urls and normalized_url not in self.in_progress_urls:
                     if self.page_count + self.queue.qsize() < self.max_pages:
                         self.in_progress_urls.add(normalized_url)
                         await self.queue.put(normalized_url)
@@ -230,9 +202,7 @@ class AsyncCrawler:
 
                 self.graph.add_node(current_url)
 
-                logging.info(
-                    f"Fetching ({self.page_count + 1}/{self.max_pages}): {current_url}"
-                )
+                logging.info(f"Fetching ({self.page_count + 1}/{self.max_pages}): {current_url}")
                 try:
                     async with self.session.get(  # type: ignore
                         current_url, timeout=aiohttp.ClientTimeout(total=30)
@@ -241,11 +211,7 @@ class AsyncCrawler:
                         self.in_progress_urls.discard(current_url)
                         self.page_count += 1
 
-                        if (
-                            response.status == 200
-                            and "text/html"
-                            in response.headers.get("Content-Type", "").lower()
-                        ):
+                        if response.status == 200 and "text/html" in response.headers.get("Content-Type", "").lower():
                             html = await response.text(errors="ignore")
                             await self._save_html(current_url, html)
                             await self._process_html(current_url, html)
@@ -277,9 +243,7 @@ class AsyncCrawler:
             limit_per_host=max(1, int(self.semaphore._value / 2)),  # Ensure at least 1
             ssl=False,
         )
-        async with aiohttp.ClientSession(
-            headers=headers, connector=connector
-        ) as session:
+        async with aiohttp.ClientSession(headers=headers, connector=connector) as session:
             self.session = session
 
             if self._is_valid_url(self.start_url):
@@ -290,10 +254,7 @@ class AsyncCrawler:
                 logging.error(f"Start URL {self.start_url} is invalid or disallowed.")
                 return
 
-            workers = [
-                asyncio.create_task(self._worker())
-                for _ in range(self.semaphore._value)
-            ]
+            workers = [asyncio.create_task(self._worker()) for _ in range(self.semaphore._value)]
 
             await self.queue.join()
             logging.info("Task queue empty.")
@@ -313,30 +274,18 @@ class AsyncCrawler:
         duration = end_time - start_time
         logging.info("Crawler finished.")
         logging.info(f"Fetched {self.page_count} pages.")
-        logging.info(
-            f"Visited (incl. errors/robots): {len(self.visited_urls)} unique URLs."
-        )
-        logging.info(
-            f"Graph contains {self.graph.number_of_nodes()} nodes and {self.graph.number_of_edges()} edges."
-        )
+        logging.info(f"Visited (incl. errors/robots): {len(self.visited_urls)} unique URLs.")
+        logging.info(f"Graph contains {self.graph.number_of_nodes()} nodes and {self.graph.number_of_edges()} edges.")
         logging.info(f"Total execution time: {duration:.2f} seconds.")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Asynchronous Web Crawler")
     parser.add_argument("start_url", help="Initial URL (e.g., https://www.osu.edu)")
-    parser.add_argument(
-        "-m", "--max_pages", type=int, default=3000, help="Max pages to fetch"
-    )
-    parser.add_argument(
-        "-c", "--concurrency", type=int, default=10, help="Concurrent download tasks"
-    )
-    parser.add_argument(
-        "-o", "--output_dir", default="./artifacts", help="Output directory for results"
-    )
-    parser.add_argument(
-        "-ua", "--user_agent", default=DEFAULT_USER_AGENT, help="HTTP User-Agent"
-    )
+    parser.add_argument("-m", "--max_pages", type=int, default=3000, help="Max pages to fetch")
+    parser.add_argument("-c", "--concurrency", type=int, default=10, help="Concurrent download tasks")
+    parser.add_argument("-o", "--output_dir", default="./artifacts", help="Output directory for results")
+    parser.add_argument("-ua", "--user_agent", default=DEFAULT_USER_AGENT, help="HTTP User-Agent")
 
     args = parser.parse_args()
 
@@ -370,7 +319,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # Optional: Set event loop policy for Windows if needed
-    # if os.name == 'nt':
-    #     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     main()
