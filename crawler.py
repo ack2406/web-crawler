@@ -149,43 +149,7 @@ class AsyncCrawler:
             if "." in os.path.basename(path):
                 extension = os.path.splitext(path)[1].lower()
                 allowed_extensions = {"", ".htm", ".html", ".php", ".asp", ".aspx"}
-                ignored_extensions = {
-                    ".pdf",
-                    ".doc",
-                    ".docx",
-                    ".xls",
-                    ".xlsx",
-                    ".ppt",
-                    ".pptx",
-                    ".jpg",
-                    ".jpeg",
-                    ".png",
-                    ".gif",
-                    ".bmp",
-                    ".svg",
-                    ".webp",
-                    ".zip",
-                    ".rar",
-                    ".tar",
-                    ".gz",
-                    ".7z",
-                    ".mp3",
-                    ".mp4",
-                    ".avi",
-                    ".mov",
-                    ".wmv",
-                    ".css",
-                    ".js",
-                    ".xml",
-                    ".json",
-                    ".csv",
-                    ".txt",
-                    ".ics",
-                }
-                if (
-                    extension not in allowed_extensions
-                    and extension in ignored_extensions
-                ):
+                if extension not in allowed_extensions:
                     logging.debug(
                         f"Rejected URL with unsupported file extension: {url}"
                     )
