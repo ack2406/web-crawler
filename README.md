@@ -21,7 +21,7 @@ This project implements an asynchronous web crawler in Python using `asyncio` an
 
     ```bash
     # Crawl osu.edu, max 3000 pages, 20 concurrent tasks, save to ./artifacts
-    python crawler.py https://www.osu.edu -m 3000 -c 20 -o ./artifacts
+    uv run src/crawler.py https://www.osu.edu -m 3000 -c 20 -o ./artifacts
     ```
 
     This will generate `artifacts/link_graph.graphml` and save HTML files in `artifacts/html_docs/`.
@@ -30,24 +30,24 @@ This project implements an asynchronous web crawler in Python using `asyncio` an
 
     ```bash
     # Analyze the generated graph, save results/plots to ./graph_results
-    python analyze_graph.py artifacts/link_graph.graphml -o ./artifacts/graph_results
+    uv run src/analyze_graph.py artifacts/link_graph.graphml -o ./artifacts/graph_results
     ```
 
 3.  **Analyze PageRank:**
 
     ```bash
     # Calculate and analyze PageRank, save results/plots to ./pagerank_results
-    python pagerank_analysis.py artifacts/link_graph.graphml -o ./artifacts/pagerank_results
+    uv run src/pagerank_analysis.py artifacts/link_graph.graphml -o ./artifacts/pagerank_results
     ```
 
 4.  **Test Crawler Performance:**
 
     ```bash
     # Make the script executable
-    chmod +x test_performance.sh
+    chmod +x src/test_performance.sh
 
     # Run performance tests (uses MAX_PAGES_TEST=1000 by default)
-    ./test_performance.sh
+    ./src/test_performance.sh
     ```
 
     This saves timing results to `./artifacts/perf_test/performance_results.csv`.
